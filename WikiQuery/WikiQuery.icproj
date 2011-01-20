@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<VisualStudioProject
+	ProjectType="Intel C++ Project"
+	Version="11.1"
+	Name="WikiQuery"
+	ProjectGUID="{E8290DC8-D731-4101-9BAB-0851EA7A0A84}"
+	VCNestedProjectGUID="{57289E95-7574-43EE-B72B-478FDDF9A183}"
+	VCNestedProjectFileName="WikiQuery.vcproj">
+	<Configurations/>
+	<Files/>
+</VisualStudioProject>

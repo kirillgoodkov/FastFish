@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<VisualStudioProject
+	ProjectType="Intel C++ Project"
+	Version="11.1"
+	Name="WikiImport"
+	ProjectGUID="{A464CCC1-E2BE-4FC2-B120-D1D825426BE2}"
+	VCNestedProjectGUID="{D12A6C63-380E-4471-B27C-476D9CC3EBA0}"
+	VCNestedProjectFileName="WikiImport.vcproj">
+	<Configurations/>
+	<Files/>
+</VisualStudioProject>
