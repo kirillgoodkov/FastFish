@@ -1,0 +1,67 @@
+Purpose:
+
+Library FastFish designed for organize full-text search in the application. Current 
+API presented for the C++ language, in the future planned to add wrappers for use 
+with other languages. 
+
+Key Features:
+
+Search queries use Standard Boolean model. This provides a high-speed query execution. 
+Example: for simple conjunctive queries and the size of the index order of a few 
+gigabytes, you can do tens of thousands of queries/second on a each processors core. 
+
+Supported a static ranking for documents, i.e. rank of the document specified in 
+the time of indexing. 
+
+High-speed indexing - a few tens megabytes/second per processors core. 
+
+Search is possible with index, which splitted on several segments. With a large 
+number of segments, query performance decreases slightly. For example, when the 
+index size of about gigabyte, splitting it to 50 segments slows down the speed 
+of simple conjunctive queries about 2 times. 
+
+Each segment of the index all-sufficient, possible any combination of segments, 
+if they have the same type. 
+
+Loading segment is a lightweight operation, reading the entire file is not required. 
+The data of segment used in searches through memory mapping. This restrict a total 
+size of the index when search performed on 32-bit platform (depending from the OS, 
+usually 2GB). 
+
+FastFish is oriented on tasks, in which the index is fit entirely in RAM or slightly 
+exceeds its capacity, no more than a few times. When searching on an index that 
+do not fit into memory and stored on the HDD, the speed drops substantially. 
+When used the SSD, speed decrease is minor.
+
+Request consists of elementary operations that can be combined with logical operators 
+and grouped with any degree of nesting. 
+
+FastFish working with text in UTF-8 format. Internal data is stored directly in UTF-8. 
+Supported the complete set of Unicode characters, i.e. including the characters 
+above U+FFFF. Supported case-insensitive search. 
+
+System requirements:
+	Hardware platform: 32 or 64-bit machines, both little-endian and big-endian. 
+		Possible to use the platform with strict requirements for data alignment. 		
+	OS: POSIX-compatible environment or Win32/64.					  	
+	Compiler: currently, building and operability has been tested on GCC 4.3.4 
+		and 4.5.0, MSVC 2005, ICC 11.1/Windows.
+	
+	The format of the index depends only from the endianness of platform. 
+	I.e. index builded on the little-endian platform, will be inapplicable for 
+	searching on big-endian platform and vice versa. All other platform characteristics 
+	(32/64 bit, OS, compiler) does not affect the binary format of the index. 
+
+Limitations:
+	* 2 147 483 647 documents per one segment 
+	* 65 536 segments
+	* 128 fields in the index 
+	* 255 elementary operations in the query 
+	* 32 words in each elementary operation 
+	* 65 535 ranks 
+	* 65 536 - length of the value in data field 
+	* 65 536 - length of the word in the texts for the search fields 
+	Length of the text in any search field of a document is not restricted. 
+
+Version History:
+	0.0.0 - initial release
