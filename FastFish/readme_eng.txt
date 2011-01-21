@@ -37,7 +37,7 @@ Request consists of elementary operations that can be combined with logical oper
 and grouped with any degree of nesting. 
 
 FastFish working with text in UTF-8 format. Internal data is stored directly in UTF-8. 
-Supported the complete set of Unicode characters, i.e. including the characters 
+Supported the full set of Unicode characters, i.e. including the characters 
 above U+FFFF. Supported case-insensitive search. 
 
 System requirements:
