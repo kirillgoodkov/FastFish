@@ -39,7 +39,9 @@ size_t FindBit(const TYPE* arrBmp, size_t nFrom) throw();
 //variable byte encoding
 uns4_t VbeRead(const uns1_t*& p) throw();
 void   VbeWrite(uns4_t nVal, uns1_t*& p) throw();
+void   VbeWriteRev(uns4_t nVal, uns1_t*& p) throw();
 size_t VbeSizeOf(uns4_t nVal) throw();
+const size_t VbeMaxLen = 5;
 
 }//namespace FastFish 
 

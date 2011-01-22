@@ -27,7 +27,7 @@ void CreateCmprList<DOCUMENTS>::operator () (docid_t did) throw()
     ffAssume(did < m_didPrev);
     
     uns1_t* pPrev = m_pNext;
-    VbeWrite(m_pNext, m_didPrev - did);    
+    VbeWrite(m_didPrev - did, m_pNext);    
     
     if (m_pNextBlock <= m_pNext)
     {
@@ -41,7 +41,7 @@ void CreateCmprList<DOCUMENTS>::operator () (docid_t did) throw()
             memset(pPrev, 0, m_pNextBlock - pPrev);
             m_pNext = m_pNextBlock;
             
-            VbeWrite(m_pNext, m_didPrev - did);
+            VbeWrite(m_didPrev - did, m_pNext);
             
             *m_pIndex0++ = m_didPrev;
         }

@@ -390,7 +390,7 @@ uns4_t VbeRead(const uns1_t*& p) throw()
 }
 
 inline
-void VbeWrite(uns1_t*& p, uns4_t nVal) throw()
+void VbeWrite(uns4_t nVal, uns1_t*& p) throw()
 {
     size_t nBits = ffBitSizeOf(nVal) - CountLeftNulls(nVal);
     ffAssume(nBits <= ffBitSizeOf(nVal));
@@ -411,6 +411,15 @@ void VbeWrite(uns1_t*& p, uns4_t nVal) throw()
         *p++ = uns1_t(nVal >> nShift) | 0x80;
     }
     *p++ = uns1_t(nVal) & 0x7F;    
+}
+
+inline
+void VbeWriteRev(uns4_t nVal, uns1_t*& p) throw()
+{
+    //@@@@temporary implementation    
+    p -= VbeSizeOf(nVal);
+    uns1_t* pNew = p;
+    VbeWrite(nVal, pNew);    
 }
 
 }//namespace FastFish 
