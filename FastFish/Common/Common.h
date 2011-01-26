@@ -69,9 +69,11 @@
     #ifdef ffRelease
         #define _SECURE_SCL 0
         #define _SECURE_SCL_THROWS 0
+    #else
+        #define _SCL_SECURE_NO_WARNINGS            
     #endif            
 
-    extern "C" {void __stdcall DebugBreak();}    
+    extern "C" {void __stdcall DebugBreak();}        
 #else
     #error Unknown compiler 
 #endif    
