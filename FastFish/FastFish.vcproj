@@ -774,11 +774,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Containers\Set2.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Containers\Set2.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\Containers\SList.h"
 				>
 			</File>
 			<File
 				RelativePath=".\Containers\SList.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\temp.h"
 				>
 			</File>
 		</Filter>

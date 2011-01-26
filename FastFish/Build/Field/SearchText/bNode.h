@@ -2,6 +2,7 @@
 #include "Containers/CharMapSmall.h"
 #include "Containers/Deque.h"
 #include "Containers/Set.h"
+#include "Containers/Set2.h"
 #include "Memory/AllocatorInvaderBB.h"
 #include "Common/Common.h"
 
@@ -16,7 +17,7 @@ class Node
     Node(const Node&);
     Node& operator = (const Node&);    
 public:
-    typedef Set<docid_t, MaxDocumentId>      SetType;
+    typedef Set2<docid_t, MaxDocumentId>      SetType;//@@@
     typedef CharMapSmall<Node, bCTRL, bSENS> MapType;
 
     struct ContextAW

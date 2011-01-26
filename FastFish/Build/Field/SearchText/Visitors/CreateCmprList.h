@@ -1,5 +1,6 @@
 #pragma once
 #include "Containers/Set.h"
+#include "Containers/Set2.h"
 #include "Memory/ArrayPtr.h"
 #include "Common/Consts.h"
 #include "Common/Common.h"
@@ -19,7 +20,7 @@ class CreateCmprList
     static const size_t  MinItemsInBlock = BlockSize/5;
     
 public:
-    typedef Set<docid_t, MaxDocumentId> SetType;
+    typedef Set2<docid_t, MaxDocumentId> SetType;//@@@
 
     CreateCmprList(const SetType& st, const DOCUMENTS* pDocs) throw();
     
