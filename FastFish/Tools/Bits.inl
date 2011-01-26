@@ -416,7 +416,7 @@ void VbeWrite(uns4_t nVal, uns1_t*& p) throw()
 inline
 void VbeWriteRev(uns4_t nVal, uns1_t*& p) throw()
 {
-    //@@@@temporary implementation    
+    //@@@temporary implementation    
     p -= VbeSizeOf(nVal);
     uns1_t* pNew = p;
     VbeWrite(nVal, pNew);    
