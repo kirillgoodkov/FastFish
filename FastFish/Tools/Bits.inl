@@ -416,10 +416,11 @@ void VbeWrite(uns4_t nVal, uns1_t*& p) throw()
 inline
 void VbeWriteRev(uns4_t nVal, uns1_t*& p) throw()
 {
-    //@@@temporary implementation    
-    p -= VbeSizeOf(nVal);
-    uns1_t* pNew = p;
-    VbeWrite(nVal, pNew);    
+    *--p = uns1_t(nVal) & 0x7F;
+    for (nVal >>= 7; nVal; nVal >>= 7)
+    {
+        *--p = uns1_t(nVal) | 0x80;
+    }    
 }
 
 }//namespace FastFish 
