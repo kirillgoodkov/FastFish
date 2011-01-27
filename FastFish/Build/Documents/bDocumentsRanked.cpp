@@ -85,7 +85,7 @@ void DocumentsRanked::Store(OFStream& file) const ffThrowAll
     }        
     file.BagCommit();
     
-    ffLog(lsInfoFileSummary, "docs:\t         "); file.DumpSize();
+    ffLog(lsInfoFileSummary, "docs:\t          "); file.DumpSize();
 }
 
 }//namespace Build
