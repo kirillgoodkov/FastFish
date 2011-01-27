@@ -60,7 +60,7 @@ private:
     struct List
     {
         uns1_t*     pWrite;
-        VALUE       pad[1];
+        ff64Only(VALUE pad);
         VALUE       nCountF;
         VALUE       valLast;
     };
@@ -68,7 +68,7 @@ private:
     struct Tree
     {
         uns1_t**    pWrite;
-        VALUE       pad[1];
+        ff64Only(VALUE pad);
         VALUE       nCountF;
         VALUE       valLastF;
     };

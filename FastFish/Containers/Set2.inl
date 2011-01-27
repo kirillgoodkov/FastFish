@@ -109,7 +109,7 @@ Set2<VALUE, nMAXVAL>& Set2<VALUE, nMAXVAL>::operator = (Set2& other) throw()
     return *this;
 }
 
-template<typename VALUE, size_t nMAXVAL>
+template<typename VALUE, size_t nMAXVAL> ffForceInline
 void Set2<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
 {
     ffAssert(!IsTree());
@@ -221,7 +221,7 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
     }
 }
 
-/*          this        other
+/*          this        other           result
     0       inplace     inplace     ->  inplace                 ? sum <= inplace
                                     |   convert 2 list, goto 1                                
     1       list        inplace     ->  list                      
