@@ -789,10 +789,6 @@
 				RelativePath=".\Containers\SList.inl"
 				>
 			</File>
-			<File
-				RelativePath=".\temp.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Memory"

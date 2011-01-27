@@ -86,9 +86,18 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a)throw()
         Node* pNode     = NewPOD<Node>(a);
         Node* pNodeSrc  = GetNode(src.m_tree.pWrite);
         *pNode          = *pNodeSrc;
+        
         m_tree.pWrite   = pNode->arrLeafs + (src.m_tree.pWrite - pNodeSrc->arrLeafs);
         m_tree.nCountF  = src.m_tree.nCountF;
         m_tree.valLastF = src.m_tree.valLastF;                
+        
+        Leaf* pLeaf = GetLeaf(*m_tree.pWrite);
+        if (pLeaf->arrData != *m_tree.pWrite)
+        {
+            pLeaf          = NewPOD<Leaf>(a);
+            pLeaf->pPrev   = *m_tree.pWrite;
+            *m_tree.pWrite = pLeaf->DataEnd();
+        }        
     }
 }
 
@@ -192,14 +201,14 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
         EnumChain(proc, m_lst.valLast, m_lst.pWrite);
     }
     else //tree
-    {           
+    {    
         EnumChain(proc, m_tree.valLastF & ~ValueFlag, *m_tree.pWrite);
         
         const uns1_t*const* pRead = m_tree.pWrite - 1;
         do //nodes
         {
             const Node* pNode = GetNode(pRead + 1);
-            for (; pRead <= pNode->arrLeafs; --pRead)
+            for (; pNode->arrLeafs <= pRead; --pRead)
             {
                 const uns1_t* pData = *pRead;
                 VALUE valPrev = VbeRead(pData);
@@ -228,15 +237,15 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     ffAssert(!(IsEmpty() || other.IsEmpty()));
 
     VALUE nCountOther = other.Count();
-    
+
     if (IsInplace())
     {
         VALUE nCount = Count();
         if (other.IsInplace() && 
             nCount + nCountOther <= InplaceVals)
         {
-            std::copy(other.m_arrVals + InplaceVals - nCountOther, other.ValsEnd(), 
-                      m_arrVals + InplaceVals - (nCount + nCountOther));
+            std::copy(ValsEnd() - nCount, ValsEnd(), ValsEnd() - nCount - nCountOther);
+            std::copy(other.ValsEnd() - nCountOther, other.ValsEnd(), ValsEnd() - nCountOther);
             ffDebugOnly(other.Clear());
             return;
         }
@@ -246,7 +255,7 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         Leaf* pLeaf  = NewPOD<Leaf>(a);
         pLeaf->pPrev = 0;
         
-        VALUE* pVal    = m_arrVals + InplaceVals - nCount;
+        VALUE* pVal    = ValsEnd() - nCount;
         VALUE valPrev  = *pVal++;
         uns1_t* pWrite = pLeaf->DataEnd();
         for (; pVal != ValsEnd(); ++pVal)
@@ -323,7 +332,6 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     }
     else
     {   //new leaf chain
-
         VALUE valLast = m_tree.valLastF & ~ValueFlag;
         if (size_t(*m_tree.pWrite - pLeaf->arrData) < VbeSizeOf(valLast))
         {//new leaf
