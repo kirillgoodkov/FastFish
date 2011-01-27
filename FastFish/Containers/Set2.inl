@@ -4,6 +4,29 @@
 namespace FastFish{
 
 template<typename VALUE, size_t nMAXVAL>
+typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::AppendLeaf(uns1_t*& pDst, uns1_t* pSrc, AllocatorInvader& a) throw()
+{
+    Leaf* pLeaf  = NewPOD<Leaf>(a);
+    pLeaf->pPrev = pSrc;                    
+    pDst         = pLeaf->DataEnd();
+    return pLeaf;
+}
+
+template<typename VALUE, size_t nMAXVAL>
+typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a) throw()
+{
+    ffAssume(0 <= pDst - pLeaf->arrData);
+    if (size_t(pDst - pLeaf->arrData) < VbeSizeOf(val))
+    {
+        pLeaf = AppendLeaf(pDst, pDst, a);
+    }
+    VbeWriteRev(val, pDst);    
+    return pLeaf;
+}
+
+//----------------------------------------------------------------------------
+
+template<typename VALUE, size_t nMAXVAL>
 bool Set2<VALUE, nMAXVAL>::IsExist(VALUE val) const throw()
 {
     ffAssert(!IsTree());    
@@ -33,6 +56,7 @@ VALUE Set2<VALUE, nMAXVAL>::Count() const throw()
         return m_lst.nCountF & ~ValueFlag;
     }
 }
+
 
 /*
 template<typename VALUE, size_t nMAXVAL>
@@ -67,16 +91,13 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a)throw()
     }
     else if (!src.IsTree())//list
     {
-        Leaf* pLeaf = GetLeaf(src.m_lst.pWrite);
-        if (src.m_lst.pWrite == pLeaf->arrData)
-        {//full leaf, attach directly
+        if (IsLeafFull(src.m_lst.pWrite))
+        {
             m_lst.pWrite = src.m_lst.pWrite;
         }
         else
         {
-            Leaf* pLeaf  = NewPOD<Leaf>(a);
-            pLeaf->pPrev = src.m_lst.pWrite;                    
-            m_lst.pWrite = pLeaf->DataEnd();                                        
+            AppendLeaf(m_lst.pWrite, src.m_lst.pWrite, a);
         }
         m_lst.nCountF = src.m_lst.nCountF;
         m_lst.valLast = src.m_lst.valLast;
@@ -91,12 +112,9 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a)throw()
         m_tree.nCountF  = src.m_tree.nCountF;
         m_tree.valLastF = src.m_tree.valLastF;                
         
-        Leaf* pLeaf = GetLeaf(*m_tree.pWrite);
-        if (pLeaf->arrData != *m_tree.pWrite)
+        if (!IsLeafFull(*m_tree.pWrite))
         {
-            pLeaf          = NewPOD<Leaf>(a);
-            pLeaf->pPrev   = *m_tree.pWrite;
-            *m_tree.pWrite = pLeaf->DataEnd();
+            AppendLeaf(*m_tree.pWrite, *m_tree.pWrite, a);
         }        
     }
 }
@@ -119,11 +137,8 @@ void Set2<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
     {
         if (m_arrVals[0] == ValueNop)
         {//inplace
-            for (VALUE* pVal = m_arrVals; pVal != ValsLast(); ++pVal)
-            {
-                *pVal = *(pVal + 1);
-            }
-            m_arrVals[InplaceVals - 1] = val;
+            std::copy(m_arrVals + 1, ValsEnd(), m_arrVals);
+            *ValsLast() = val;
         }
         else
         {//inplace -> list
@@ -147,18 +162,7 @@ void Set2<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
     }
     else
     {//list
-        Leaf* pLeaf = GetLeaf(m_lst.pWrite);
-        VALUE valDiff = val - m_lst.valLast;
-
-        ffAssume(0 <= m_lst.pWrite - pLeaf->arrData);
-        if (size_t(m_lst.pWrite - pLeaf->arrData) < VbeSizeOf(valDiff))
-        {//new leaf
-            pLeaf        = NewPOD<Leaf>(a);
-            pLeaf->pPrev = m_lst.pWrite;
-            m_lst.pWrite = pLeaf->DataEnd();
-        }
-        
-        VbeWriteRev(valDiff, m_lst.pWrite);
+        Insert2Leaf(m_lst.pWrite, GetLeaf(m_lst.pWrite), val - m_lst.valLast, a);
         m_lst.valLast = val;
         ++m_lst.nCountF;
     }
@@ -171,19 +175,16 @@ void Set2<VALUE, nMAXVAL>::EnumChain(PROC& proc, VALUE valPrev, const uns1_t* pR
     proc(valPrev);    
     do
     {
-        const Leaf* pLeaf = GetLeaf(pRead);                    
-        
+        const Leaf* pLeaf = GetLeaf(pRead);                            
         while (pRead != pLeaf->DataEnd())
         {
             valPrev -= VbeRead(pRead);
             proc(valPrev);
-        }
-        
+        }        
         pRead = pLeaf->pPrev;
     }            
     while (pRead);      
-}
-
+}        
 
 template<typename VALUE, size_t nMAXVAL>
 template<typename PROC>
@@ -213,8 +214,7 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
                 const uns1_t* pData = *pRead;
                 VALUE valPrev = VbeRead(pData);
                 EnumChain(proc, valPrev, pData);
-            }
-                        
+            }                        
             pRead = pNode->pPrev;
         }
         while (pRead);
@@ -255,36 +255,28 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         Leaf* pLeaf  = NewPOD<Leaf>(a);
         pLeaf->pPrev = 0;
         
-        VALUE* pVal    = ValsEnd() - nCount;
-        VALUE valPrev  = *pVal++;
+        VALUE valPrev  = *(ValsEnd() - nCount);
         uns1_t* pWrite = pLeaf->DataEnd();
-        for (; pVal != ValsEnd(); ++pVal)
+        for (VALUE* pVal = ValsEnd() - nCount + 1; pVal != ValsEnd(); ++pVal)
         {
             VbeWriteRev(*pVal - valPrev, pWrite);
             valPrev = *pVal;
         }
         m_lst.pWrite  = pWrite;
+        ffDebugOnly(m_lst.valLast = *ValsLast());
         m_lst.nCountF = nCount | ValueFlag;
     }
     
     if (!IsTree())//list
     {
-        Leaf* pLeaf = GetLeaf(m_lst.pWrite);
         if (other.IsInplace())
         {
+            Leaf* pLeaf = GetLeaf(m_lst.pWrite);
+            
             VALUE valPrev = m_lst.valLast;
             for (VALUE* pVal = other.ValsEnd() - nCountOther; pVal != other.ValsEnd(); ++pVal)
             {
-                VALUE valDiff = *pVal - valPrev;
-                ffAssume(0 <= m_lst.pWrite - pLeaf->arrData);
-                if (size_t(m_lst.pWrite - pLeaf->arrData) < VbeSizeOf(valDiff))
-                {//new leaf
-                    pLeaf        = NewPOD<Leaf>(a);
-                    pLeaf->pPrev = m_lst.pWrite;
-                    m_lst.pWrite = pLeaf->DataEnd();
-                }
-                
-                VbeWriteRev(valDiff, m_lst.pWrite);
+                pLeaf = Insert2Leaf(m_lst.pWrite, pLeaf, *pVal - valPrev, a);
                 valPrev = *pVal;
             }
             
@@ -305,25 +297,15 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         }
     }
     
-    ffAssert(IsTree());
-
-    Leaf* pLeaf = GetLeaf(*m_tree.pWrite);
-    ffAssume(0 <= *m_tree.pWrite - pLeaf->arrData);
-    
+    ffAssert(IsTree());    
     if (other.IsInplace())
     {
         //push 2 same leaf chain
         VALUE valPrev = m_tree.valLastF & ~ValueFlag;
+        Leaf* pLeaf = GetLeaf(*m_tree.pWrite);
         for (VALUE* pVal = other.ValsEnd() - nCountOther; pVal != other.ValsEnd(); ++pVal)
         {
-            VALUE valDiff = *pVal - valPrev;
-            if (size_t(*m_tree.pWrite - pLeaf->arrData) < VbeSizeOf(valDiff))
-            {//new leaf
-                pLeaf          = NewPOD<Leaf>(a);
-                pLeaf->pPrev   = *m_tree.pWrite;
-                *m_tree.pWrite = pLeaf->DataEnd();
-            }            
-            VbeWriteRev(valDiff, *m_tree.pWrite);
+            pLeaf = Insert2Leaf(*m_tree.pWrite, pLeaf, *pVal - valPrev, a);
             valPrev = *pVal;
         }
         
@@ -332,18 +314,11 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     }
     else
     {   //new leaf chain
-        VALUE valLast = m_tree.valLastF & ~ValueFlag;
-        if (size_t(*m_tree.pWrite - pLeaf->arrData) < VbeSizeOf(valLast))
-        {//new leaf
-            pLeaf          = NewPOD<Leaf>(a);
-            pLeaf->pPrev   = *m_tree.pWrite;
-            *m_tree.pWrite = pLeaf->DataEnd();
-        }        
-        VbeWriteRev(valLast, *m_tree.pWrite);
+        Insert2Leaf(*m_tree.pWrite, GetLeaf(*m_tree.pWrite), m_tree.valLastF & ~ValueFlag, a);
         
         Node* pNode = GetNode(m_tree.pWrite);
         if (pNode->LeafsLast() == m_tree.pWrite)
-        {//new node
+        {
             pNode         = NewPOD<Node>(a);
             pNode->pPrev  = m_tree.pWrite;
             m_tree.pWrite = pNode->arrLeafs;

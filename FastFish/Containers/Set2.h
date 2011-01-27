@@ -85,24 +85,28 @@ private:
         Tree        m_tree;
         Raw         m_raw;
     };
-    
+
     static Leaf* GetLeaf(uns1_t* p)                    throw() {return reinterpret_cast<Leaf*>(size_t(p - 1) & ~BlockMask);}
     static const Leaf* GetLeaf(const uns1_t* p)        throw() {return reinterpret_cast<Leaf*>(size_t(p - 1) & ~BlockMask);}
     
     static Node* GetNode(uns1_t** pp)                  throw() {return reinterpret_cast<Node*>(size_t(pp - 1) & ~BlockMask);}
     static const Node* GetNode(const uns1_t*const* pp) throw() {return reinterpret_cast<Node*>(size_t(pp - 1) & ~BlockMask);}
 
-    VALUE* ValsEnd()                                   throw() {return m_arrVals + ffCountOf(m_arrVals);}    
-    const VALUE* ValsEnd()                       const throw() {return m_arrVals + ffCountOf(m_arrVals);}
-                                       
-    VALUE* ValsLast()                                  throw() {return m_arrVals + ffCountOf(m_arrVals) - 1;}    
-    const VALUE* ValsLast()                      const throw() {return m_arrVals + ffCountOf(m_arrVals) - 1;}
-                                               
-    bool IsInplace()                             const throw() {return 0 == (m_lst.nCountF & ValueFlag);}
-    bool IsTree()                                const throw() {return 0 != (m_tree.valLastF & ValueFlag);}
-    //bool HasSingleLeaf()                         const throw();
-                                               
-    void Clear()                                       throw() {std::fill_n(m_arrVals, ffCountOf(m_arrVals), VALUE(ValueNop));}
+    static Leaf* AppendLeaf(uns1_t*& pDst, uns1_t* pSrc, AllocatorInvader& a)               throw();
+    static Leaf* Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a)    throw();
+    static bool  IsLeafFull(const uns1_t* p)                                                throw()     {return GetLeaf(p)->arrData == p;}
+    
+    VALUE* ValsEnd()              throw() {return m_arrVals + ffCountOf(m_arrVals);}    
+    const VALUE* ValsEnd()  const throw() {return m_arrVals + ffCountOf(m_arrVals);}
+                            
+    VALUE* ValsLast()             throw() {return m_arrVals + ffCountOf(m_arrVals) - 1;}    
+    const VALUE* ValsLast() const throw() {return m_arrVals + ffCountOf(m_arrVals) - 1;}
+                            
+    bool IsInplace()        const throw() {return 0 == (m_lst.nCountF & ValueFlag);}
+    bool IsTree()           const throw() {return 0 != (m_tree.valLastF & ValueFlag);}
+    //bool HasSingleLeaf()    const throw();
+                            
+    void Clear()                  throw() {std::fill_n(m_arrVals, ffCountOf(m_arrVals), VALUE(ValueNop));}
 
     template<typename PROC>
     static void EnumChain(PROC& proc, VALUE valPrev, const uns1_t* pRead) ffThrowAll;
