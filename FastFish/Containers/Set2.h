@@ -34,37 +34,33 @@ private:
 
     static const size_t InplaceVals = ff32Or64(3, 5);
     static const size_t DataSize    = BlockSize - sizeof(void*);
-    static const size_t LeafsCount  = DataSize / sizeof(void*);
+    static const size_t ChainsCount = DataSize / sizeof(void*);
     
     static const VALUE  ValueNop    = nMAXVAL + 1;
     static const VALUE  ValueFlag   = ~(VALUE(-1) >> 1);
     
     struct Leaf
     {
-        uns1_t*         pPrev;
-        uns1_t          arrData[DataSize];      //filled in reverse order, 0 <= items <= DataSize
+        uns1_t      arrData[DataSize];      //fill in reverse order, 0 <= items <= DataSize
+        uns1_t*     pPrev;
+        
         uns1_t*         DataEnd() throw()       {return arrData + ffCountOf(arrData);}
         const uns1_t*   DataEnd() const throw() {return arrData + ffCountOf(arrData);}
-    };
-    
+    };      
     struct Node
     {
+        uns1_t*     arrChains[ChainsCount]; //fill in normal order, 0 < items <= LeafsCount
         uns1_t**    pPrev;
-        uns1_t*     arrLeafs[LeafsCount];   //filled in normal order, 0 < items <= LeafsCount
         
-        uns1_t**            LeafsEnd()        throw()   {return arrLeafs + ffCountOf(arrLeafs);}
-        uns1_t**            LeafsLast()       throw()   {return arrLeafs + ffCountOf(arrLeafs) - 1;}
-        const uns1_t*const* LeafsLast() const throw()   {return arrLeafs + ffCountOf(arrLeafs) - 1;}
-    };
-    
+        uns1_t**    ChainsLast() throw()        {return arrChains + ffCountOf(arrChains) - 1;}
+    };      
     struct List
     {
         uns1_t*     pWrite;
         ff64Only(VALUE pad);
         VALUE       nCountF;
         VALUE       valLast;
-    };
-
+    };  
     struct Tree
     {
         uns1_t**    pWrite;
@@ -86,11 +82,11 @@ private:
         Raw         m_raw;
     };
 
-    static Leaf* GetLeaf(uns1_t* p)                    throw() {return reinterpret_cast<Leaf*>(size_t(p - 1) & ~BlockMask);}
-    static const Leaf* GetLeaf(const uns1_t* p)        throw() {return reinterpret_cast<Leaf*>(size_t(p - 1) & ~BlockMask);}
+    static Leaf* GetLeaf(uns1_t* p)                    throw() {return reinterpret_cast<Leaf*>(size_t(p) & ~BlockMask);}
+    static const Leaf* GetLeaf(const uns1_t* p)        throw() {return reinterpret_cast<Leaf*>(size_t(p) & ~BlockMask);}
     
-    static Node* GetNode(uns1_t** pp)                  throw() {return reinterpret_cast<Node*>(size_t(pp - 1) & ~BlockMask);}
-    static const Node* GetNode(const uns1_t*const* pp) throw() {return reinterpret_cast<Node*>(size_t(pp - 1) & ~BlockMask);}
+    static Node* GetNode(uns1_t** pp)                  throw() {return reinterpret_cast<Node*>(size_t(pp) & ~BlockMask);}
+    static const Node* GetNode(const uns1_t*const* pp) throw() {return reinterpret_cast<Node*>(size_t(pp) & ~BlockMask);}
 
     static Leaf* AppendLeaf(uns1_t*& pDst, uns1_t* pSrc, AllocatorInvader& a)               throw();
     static Leaf* Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a)    throw();

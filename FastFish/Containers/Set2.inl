@@ -79,6 +79,7 @@ Set2<VALUE, nMAXVAL>::Set2() throw()
     ffAssumeStatic(sizeof(*this) == sizeof(Tree));
     ffAssumeStatic(sizeof(*this) == sizeof(m_arrVals));
     ffAssumeStatic(sizeof(*this) == sizeof(Raw));
+    ffAssumeStatic(nMAXVAL <= (VALUE(-1) >> 1));
 }
 
 template<typename VALUE, size_t nMAXVAL>
@@ -104,14 +105,15 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a)throw()
     }
     else//tree
     {
-        Node* pNode     = NewPOD<Node>(a);
-        Node* pNodeSrc  = GetNode(src.m_tree.pWrite);
-        *pNode          = *pNodeSrc;
-        
-        m_tree.pWrite   = pNode->arrLeafs + (src.m_tree.pWrite - pNodeSrc->arrLeafs);
+        Node* pNodeSrc      = GetNode(src.m_tree.pWrite);
+        Node* pNode         = NewPOD<Node>(a);
+        pNode->pPrev        = (pNodeSrc->arrChains == src.m_tree.pWrite) ? pNodeSrc->pPrev : (src.m_tree.pWrite - 1);
+        pNode->arrChains[0] = *src.m_tree.pWrite;
+
+        m_tree.pWrite   = pNode->arrChains;
         m_tree.nCountF  = src.m_tree.nCountF;
-        m_tree.valLastF = src.m_tree.valLastF;                
-        
+        m_tree.valLastF = src.m_tree.valLastF;                        
+
         if (!IsLeafFull(*m_tree.pWrite))
         {
             AppendLeaf(*m_tree.pWrite, *m_tree.pWrite, a);
@@ -209,7 +211,7 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
         do //nodes
         {
             const Node* pNode = GetNode(pRead + 1);
-            for (; pNode->arrLeafs <= pRead; --pRead)
+            for (; pNode->arrChains <= pRead; --pRead)
             {
                 const uns1_t* pData = *pRead;
                 VALUE valPrev = VbeRead(pData);
@@ -221,7 +223,10 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
     }
 }
 
-/*          this        other           result
+template<typename VALUE, size_t nMAXVAL>
+void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
+{
+/*          this        other           
     0       inplace     inplace     ->  inplace                 ? sum <= inplace
                                     |   convert 2 list, goto 1                                
     1       list        inplace     ->  list                      
@@ -230,9 +235,6 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
     4       tree        list        ->  tree(new pos)
 */
 
-template<typename VALUE, size_t nMAXVAL>
-void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
-{
     ffAssert(!other.IsTree());
     ffAssert(!(IsEmpty() || other.IsEmpty()));
 
@@ -289,11 +291,11 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         {//convert this 2 tree
             ffAssert(!(IsInplace() || IsTree()));
             
-            Node* pNode        = NewPOD<Node>(a);
-            pNode->pPrev       = 0;
-            pNode->arrLeafs[0] = m_lst.pWrite;
-            m_tree.pWrite      = pNode->arrLeafs;
-            m_tree.valLastF    = m_lst.valLast | ValueFlag;        
+            Node* pNode         = NewPOD<Node>(a);
+            pNode->pPrev        = 0;
+            pNode->arrChains[0] = m_lst.pWrite;
+            m_tree.pWrite       = pNode->arrChains;
+            m_tree.valLastF     = m_lst.valLast | ValueFlag;        
         }
     }
     
@@ -317,11 +319,11 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         Insert2Leaf(*m_tree.pWrite, GetLeaf(*m_tree.pWrite), m_tree.valLastF & ~ValueFlag, a);
         
         Node* pNode = GetNode(m_tree.pWrite);
-        if (pNode->LeafsLast() == m_tree.pWrite)
+        if (pNode->ChainsLast() == m_tree.pWrite)
         {
             pNode         = NewPOD<Node>(a);
             pNode->pPrev  = m_tree.pWrite;
-            m_tree.pWrite = pNode->arrLeafs;
+            m_tree.pWrite = pNode->arrChains;
         }
         else
         {
