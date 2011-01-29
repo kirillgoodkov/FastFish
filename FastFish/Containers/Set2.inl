@@ -305,7 +305,9 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     }
     else
     {   //new leaf chain
-        Insert2Leaf(*m_tree.pWrite, GetLeaf(*m_tree.pWrite), m_tree.valLastF & ~ValueFlag, a);
+        Leaf* pLeaf = GetLeaf(*m_tree.pWrite);
+        Insert2Leaf(*m_tree.pWrite, pLeaf, m_tree.valLastF & ~ValueFlag, a);
+        ffClFlush(pLeaf);
         
         Node* pNode = GetNode(m_tree.pWrite);
         if (pNode->ChainsLast() == m_tree.pWrite)
