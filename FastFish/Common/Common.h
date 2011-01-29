@@ -31,10 +31,10 @@
     #endif
 
     #ifdef _X86_
-        #define ffFlush _mm_clflush
+        #define ffClFlush _mm_clflush
     #else        
         #define ffStrictAlign
-        #define ffFlush 
+        #define ffClFlush 
     #endif        
     
     #ifdef __LP64__
@@ -54,10 +54,10 @@
     #endif        
     
     #if defined(_M_IX86) || defined(_M_X64)
-        #define ffFlush _mm_clflush
+        #define ffClFlush _mm_clflush
     #else
         #define ffStrictAlign
-        #define ffFlush 
+        #define ffClFlush 
     #endif
     
     #ifdef _WIN64

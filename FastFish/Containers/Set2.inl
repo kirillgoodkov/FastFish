@@ -18,6 +18,7 @@ typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& 
     ffAssume(0 <= pDst - pLeaf->arrData);
     if (size_t(pDst - pLeaf->arrData) < VbeSizeOf(val))
     {
+        ffClFlush(pLeaf);
         pLeaf = AppendLeaf(pDst, pDst, a);
     }
     VbeWriteRev(val, pDst);    
@@ -56,18 +57,6 @@ VALUE Set2<VALUE, nMAXVAL>::Count() const throw()
         return m_lst.nCountF & ~ValueFlag;
     }
 }
-
-
-/*
-template<typename VALUE, size_t nMAXVAL>
-bool Set2<VALUE, nMAXVAL>::HasSingleLeaf() const throw() 
-{
-    ffAssert(!(IsInplace() || IsTree()));
-    Leaf* pLeaf = GetLeaf(m_lst.pWrite);
-    return 0 == pLeaf->pPrev &&            //leaf is last
-           pLeaf->arrData != m_lst.pWrite; //not full, because full leaf may be shared
-}
-*/
 
 //----------------------------------------------------------------------------
 
@@ -228,9 +217,9 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
 {
 /*          this        other           
     0       inplace     inplace     ->  inplace                 ? sum <= inplace
-                                    |   convert 2 list, goto 1                                
+                                    |   convert2list, goto 1                                
     1       list        inplace     ->  list                      
-    2       list        list        ->  convert 2 tree, goto 4                                
+    2       list        list        ->  convert2tree, goto 4                                
     3       tree        inplace     ->  tree(same pos)                                        
     4       tree        list        ->  tree(new pos)
 */
@@ -321,6 +310,7 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         Node* pNode = GetNode(m_tree.pWrite);
         if (pNode->ChainsLast() == m_tree.pWrite)
         {
+            ffClFlush(pNode);
             pNode         = NewPOD<Node>(a);
             pNode->pPrev  = m_tree.pWrite;
             m_tree.pWrite = pNode->arrChains;

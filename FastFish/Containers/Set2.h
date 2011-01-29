@@ -100,7 +100,6 @@ private:
                             
     bool IsInplace()        const throw() {return 0 == (m_lst.nCountF & ValueFlag);}
     bool IsTree()           const throw() {return 0 != (m_tree.valLastF & ValueFlag);}
-    //bool HasSingleLeaf()    const throw();
                             
     void Clear()                  throw() {std::fill_n(m_arrVals, ffCountOf(m_arrVals), VALUE(ValueNop));}
 
