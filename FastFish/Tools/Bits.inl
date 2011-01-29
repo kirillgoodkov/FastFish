@@ -393,7 +393,7 @@ inline
 uns4_t VbeReadRev(const uns1_t*& p) throw()
 {
     --p;
-    ffAssume(0 == (*p & 0x80))
+    ffAssume(0 == (*p & 0x80));
     uns4_t nVal = *p--;        
     for (uns1_t nShift = 7; *p & 0x80; p--, nShift += 7)
     {
