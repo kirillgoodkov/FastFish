@@ -30,8 +30,11 @@
         #define ffLittleEndian
     #endif
 
-    #ifndef _X86_
+    #ifdef _X86_
+        #define ffFlush _mm_clflush
+    #else        
         #define ffStrictAlign
+        #define ffFlush 
     #endif        
     
     #ifdef __LP64__
@@ -50,8 +53,11 @@
         #define ffLittleEndian
     #endif        
     
-    #ifndef _M_IX86
+    #if defined(_M_IX86) || defined(_M_X64)
+        #define ffFlush _mm_clflush
+    #else
         #define ffStrictAlign
+        #define ffFlush 
     #endif
     
     #ifdef _WIN64
