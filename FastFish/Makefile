@@ -2,8 +2,10 @@ SRCS   := $(shell find . -name "*.cpp" -print)
 VPATH  := $(shell find . -type d -printf "%p:")
 
 CC     = g++
-CFLAGS = -c -Wall -iquote . 
-DFLAGS =  -MM -MG -iquote .
+FLAGS  = -iquote . -msse2
+CFLAGS = -c -Wall $(FLAGS)
+DFLAGS =  -MM -MG $(FLAGS)
+
 
 DBGDIR = ./../_intermediate/FastFish.GCC.Debug
 RELDIR = ./../_intermediate/FastFish.GCC.Release

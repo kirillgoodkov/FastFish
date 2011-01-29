@@ -2,7 +2,7 @@ SRCS   := $(shell find . -name "*.cpp" -print)
 VPATH  := $(shell find . -type d -printf "%p:")
 
 CC     = g++
-FLAGS  = -iquote ./../FastFish
+FLAGS  = -iquote ./../FastFish -msse2
 CFLAGS = -c -Wall $(FLAGS)
 DFLAGS =  -MM -MG $(FLAGS)
 
