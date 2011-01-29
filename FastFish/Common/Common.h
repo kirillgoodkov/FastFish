@@ -29,12 +29,16 @@
     #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
         #define ffLittleEndian
     #endif
-
-    #ifdef _X86_
+    
+    #ifdef __SSE2__
+        #include <emmintrin.h>        
         #define ffClFlush _mm_clflush
-    #else        
-        #define ffStrictAlign
-        #define ffClFlush 
+    #else
+        #define ffClFlush         
+    #endif
+
+    #if !defined(__X86__) && !defined(__x86_64__)
+        #define ffStrictAlign        
     #endif        
     
     #ifdef __LP64__
@@ -53,11 +57,14 @@
         #define ffLittleEndian
     #endif        
     
-    #if defined(_M_IX86) || defined(_M_X64)
+    #if defined(_M_X64) || (defined(_M_IX86) && (2 == _M_IX86_FP))
         #define ffClFlush _mm_clflush
     #else
+        #define ffClFlush
+    #endif
+                
+    #if !defined(_M_IX86) && !defined(_M_X64)
         #define ffStrictAlign
-        #define ffClFlush 
     #endif
     
     #ifdef _WIN64
@@ -96,6 +103,8 @@
 #endif
 
 #ifdef ffDebug
+    //#define ffDebugDeepChecks
+
     #define ff_LogInternal(_Expr)       ((void)(!!(_Expr) || _Log(lsBugInternal, "\ninternal bug; %s; %u\n", __FILE__, __LINE__)))             
     #define ff_LogUser(_Expr, _Text)    ((void)(!!(_Expr) || _Log(lsBugUser, "\nuser bug; %s; %u; %s\n", __FILE__, __LINE__, _Text)))             
 
@@ -108,7 +117,11 @@
     #define ffDebugOnly(_Expr)          _Expr
     #define ffDbgOrRel(_ExprD, _ExprR)  _ExprD
     
-    //#define ffDebugDeepChecks
+    #ifdef ffDebugDeepChecks
+        #define ffDeepCheckOnly(_Expr)      _Expr
+    #else        
+        #define ffDeepCheckOnly(_Expr)    
+    #endif        
 #else   
     #define ffAssert(_Expr)             ((void)0)
     #define ffAssertUser(_Expr, _Text)  ((void)0)
@@ -118,6 +131,7 @@
     #define ffVerify(_Expr)             ((void)(!!(_Expr)))
     #define ffDebugOnly(_Expr)                  
     #define ffDbgOrRel(_ExprD, _ExprR)  _ExprR
+    #define ffDeepCheckOnly(_Expr)    
 #endif    
 
 #define ffCountOf(_Array)           (sizeof(_Array) / sizeof(_Array[0]))

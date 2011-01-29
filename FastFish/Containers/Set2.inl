@@ -6,6 +6,7 @@ namespace FastFish{
 template<typename VALUE, size_t nMAXVAL>
 typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::AppendLeaf(uns1_t*& pDst, uns1_t* pSrc, AllocatorInvader& a) throw()
 {
+    ffAssume(pSrc);
     Leaf* pLeaf  = NewPOD<Leaf>(a);
     pLeaf->pPrev = pSrc;                    
     pDst         = pLeaf->DataEnd();
@@ -15,7 +16,8 @@ typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::AppendLeaf(uns1_t*& p
 template<typename VALUE, size_t nMAXVAL>
 typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a) throw()
 {
-    ffAssume(0 <= pDst - pLeaf->arrData);
+    ffAssume(pLeaf);
+    ffAssume(pLeaf->arrData <= pDst && pDst <= pLeaf->arrData + InplaceVals);
     if (size_t(pDst - pLeaf->arrData) < VbeSizeOf(val))
     {
         ffClFlush(pLeaf);
@@ -38,8 +40,7 @@ template<typename VALUE, size_t nMAXVAL>
 bool Set2<VALUE, nMAXVAL>::HasOneItem() const throw()
 {
     ffAssert(!IsTree());    
-    return ValueNop != *ValsLast() && 
-           ValueNop == *(ValsLast() - 1);
+    return ValueNop != *ValsLast() && ValueNop == *(ValsLast() - 1);
 }                       
 
 template<typename VALUE, size_t nMAXVAL>
@@ -69,10 +70,11 @@ Set2<VALUE, nMAXVAL>::Set2() throw()
     ffAssumeStatic(sizeof(*this) == sizeof(m_arrVals));
     ffAssumeStatic(sizeof(*this) == sizeof(Raw));
     ffAssumeStatic(nMAXVAL <= (VALUE(-1) >> 1));
+    ffAssumeStatic(sizeof(VALUE) <= sizeof(void*));
 }
 
 template<typename VALUE, size_t nMAXVAL>
-void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a)throw()
+void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a) throw()
 {
     ffAssert(IsEmpty());
     if (src.IsInplace())
@@ -108,11 +110,14 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a)throw()
             AppendLeaf(*m_tree.pWrite, *m_tree.pWrite, a);
         }        
     }
+    
+    ffAssert(Check() && src.Check());
 }
 
 template<typename VALUE, size_t nMAXVAL>
 Set2<VALUE, nMAXVAL>& Set2<VALUE, nMAXVAL>::operator = (Set2& other) throw()
 {
+    ffAssert(other.Check());
     m_raw = other.m_raw;
     ffDebugOnly(other.Clear());
     return *this;
@@ -144,19 +149,23 @@ void Set2<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
                 VbeWriteRev(*pVal - valPrev, pWrite);
                 valPrev = *pVal;
             }
-            VbeWriteRev(val - valPrev, pWrite);
             
+            VbeWriteRev(val - valPrev, pWrite);            
             m_lst.pWrite  = pWrite;
-            m_lst.valLast = val;
             m_lst.nCountF = VALUE(InplaceVals + 1) | ValueFlag;            
+            m_lst.valLast = val;
         }                        
     }
     else
     {//list
+        ffAssert(InplaceVals < Count() && Count() < nMAXVAL);
         Insert2Leaf(m_lst.pWrite, GetLeaf(m_lst.pWrite), val - m_lst.valLast, a);
+        ++m_lst.nCountF;        
         m_lst.valLast = val;
-        ++m_lst.nCountF;
     }
+    
+    ffDeepCheckOnly(ffAssert(Check()));
+    ffAssert(IsExist(val));
 }
 
 template<typename VALUE, size_t nMAXVAL>
@@ -212,18 +221,18 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
     }
 }
 
-template<typename VALUE, size_t nMAXVAL>
+template<typename VALUE, size_t nMAXVAL> ffForceInline
 void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
 {
-/*          this        other           
-    0       inplace     inplace     ->  inplace                 ? sum <= inplace
-                                    |   convert2list, goto 1                                
-    1       list        inplace     ->  list                      
-    2       list        list        ->  convert2tree, goto 4                                
-    3       tree        inplace     ->  tree(same pos)                                        
-    4       tree        list        ->  tree(new pos)
-*/
+    //      (this)      (other)
+    //0     inplace     inplace     ->  inplace                 ? sum <= inplace
+    //                              |   convert2list, goto 1                                
+    //1     list        inplace     ->  list                      
+    //2     list        list        ->  convert2tree, goto 4                                
+    //3     tree        inplace     ->  tree(same chain)                                        
+    //4     tree        list        ->  tree(new chain)
 
+    ffAssert(Check() && other.Check());   
     ffAssert(!other.IsTree());
     ffAssert(!(IsEmpty() || other.IsEmpty()));
 
@@ -232,8 +241,7 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     if (IsInplace())
     {
         VALUE nCount = Count();
-        if (other.IsInplace() && 
-            nCount + nCountOther <= InplaceVals)
+        if (other.IsInplace() && nCount + nCountOther <= InplaceVals)
         {
             std::copy(ValsEnd() - nCount, ValsEnd(), ValsEnd() - nCount - nCountOther);
             std::copy(other.ValsEnd() - nCountOther, other.ValsEnd(), ValsEnd() - nCountOther);
@@ -253,26 +261,26 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
             VbeWriteRev(*pVal - valPrev, pWrite);
             valPrev = *pVal;
         }
+        
         m_lst.pWrite  = pWrite;
-        ffDebugOnly(m_lst.valLast = *ValsLast());
         m_lst.nCountF = nCount | ValueFlag;
+        ffAssert(m_lst.valLast == *ValsLast());
     }
     
     if (!IsTree())//list
     {
         if (other.IsInplace())
         {
-            Leaf* pLeaf = GetLeaf(m_lst.pWrite);
-            
+            Leaf* pLeaf   = GetLeaf(m_lst.pWrite);            
             VALUE valPrev = m_lst.valLast;
             for (VALUE* pVal = other.ValsEnd() - nCountOther; pVal != other.ValsEnd(); ++pVal)
             {
-                pLeaf = Insert2Leaf(m_lst.pWrite, pLeaf, *pVal - valPrev, a);
+                pLeaf   = Insert2Leaf(m_lst.pWrite, pLeaf, *pVal - valPrev, a);
                 valPrev = *pVal;
             }
             
-            m_lst.valLast  = valPrev;        
             m_lst.nCountF += nCountOther;
+            m_lst.valLast  = valPrev;        
             ffDebugOnly(other.Clear());               
             return;
         }
@@ -292,16 +300,16 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     if (other.IsInplace())
     {
         //push 2 same leaf chain
+        Leaf* pLeaf   = GetLeaf(*m_tree.pWrite);
         VALUE valPrev = m_tree.valLastF & ~ValueFlag;
-        Leaf* pLeaf = GetLeaf(*m_tree.pWrite);
         for (VALUE* pVal = other.ValsEnd() - nCountOther; pVal != other.ValsEnd(); ++pVal)
         {
-            pLeaf = Insert2Leaf(*m_tree.pWrite, pLeaf, *pVal - valPrev, a);
+            pLeaf   = Insert2Leaf(*m_tree.pWrite, pLeaf, *pVal - valPrev, a);
             valPrev = *pVal;
         }
         
-        m_tree.valLastF = valPrev | ValueFlag;                
         m_tree.nCountF += nCountOther;                
+        m_tree.valLastF = valPrev | ValueFlag;                
     }
     else
     {   //new leaf chain
@@ -326,8 +334,30 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
         m_tree.nCountF += other.m_lst.nCountF & ~ValueFlag;
         m_tree.valLastF = other.m_lst.valLast | ValueFlag;         
     }
+    ffAssert(IsTree() && InplaceVals < Count());
     
     ffDebugOnly(other.Clear());                   
 }
+
+//----------------------------------------------------------------------------
+
+#ifdef ffDebug
+
+template<typename VALUE, size_t nMAXVAL>
+struct Counter
+{
+    size_t n;
+    void operator() (VALUE val) throw() {++n; ffAssume(val <= nMAXVAL);}        
+};
+
+template<typename VALUE, size_t nMAXVAL>
+bool Set2<VALUE, nMAXVAL>::Check() const throw()
+{
+    Counter<VALUE, nMAXVAL> cnt = {0};
+    Enum(cnt);
+    return Count() == cnt.n;
+}
+
+#endif
 
 }//namespace FastFish

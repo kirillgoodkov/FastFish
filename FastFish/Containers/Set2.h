@@ -28,8 +28,7 @@ public:
     void Enum(PROC& proc)                         const ffThrowAll;
 
 private:
-    static const size_t BlockShift  = 6;
-    static const size_t BlockSize   = 1 << BlockShift;
+    static const size_t BlockSize   = PC::SetBlockSize;
     static const size_t BlockMask   = BlockSize - 1;
 
     static const size_t InplaceVals = ff32Or64(3, 5);
@@ -102,6 +101,8 @@ private:
     bool IsTree()           const throw() {return 0 != (m_tree.valLastF & ValueFlag);}
                             
     void Clear()                  throw() {std::fill_n(m_arrVals, ffCountOf(m_arrVals), VALUE(ValueNop));}
+    
+    ffDebugOnly(bool Check() const throw());
 
     template<typename PROC>
     static void EnumChain(PROC& proc, VALUE valPrev, const uns1_t* pRead) ffThrowAll;
