@@ -30,7 +30,7 @@ WikiImport [ARGS] [NAME]                                 \n\
         -s[NUM]     split                     false     \n\
                     NUM: records count        1000000   \n\
         -sm[NUM]    split by out of memory    false     \n\
-                    NUM: bubble size (in MB)  500       \n\
+                    NUM: bubble size (in MB)  600       \n\
         -t(e|p|i)   type: exact/prefix/infix  p         \n\
     NAME (default): index                               \n\
     output file: NAME.TYPE.CONFIG.PLATFORM[.sSEGNUM]";
@@ -48,7 +48,7 @@ SplitType           g_SplitType    = stNone;
 
 string              g_strName      = "index";
 unsigned            g_nSplitSize   = 1000000;
-unsigned            g_nSplitBubble = 500;
+unsigned            g_nSplitBubble = 600;
 
 unsigned            g_nSegment     = 0;
 char*               g_pBubble      = 0;
