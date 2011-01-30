@@ -35,7 +35,6 @@ all : $(OUTDIR)/$(PROJNAME)
 
 $(OUTDIR)/$(PROJNAME) : $(OBJS) $(OUTDIRL)/libFastFish.a
 	$(CC) $(FLAGS) $(OBJS) $(OUTDIRL)/libFastFish.a -o $@ 
-	cp $(OUTDIR)/$(PROJNAME).exe ../_output/geo/g$(PROJNAME).exe
 
 $(OUTDIR)/%.o : DEPFILE = $(addprefix $(DEPDIR)/, $(patsubst %.o, %.d, $(@F)))
 $(OUTDIR)/%.o : %.cpp
