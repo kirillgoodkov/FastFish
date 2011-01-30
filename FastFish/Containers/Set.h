@@ -7,16 +7,16 @@ namespace FastFish{
 #pragma pack(push, 1)
 
 template<typename VALUE, size_t nMAXVAL>
-class Set2
+class Set
 {
-    Set2(const Set2&);
+    Set(const Set&);
 public:
-    Set2()                                              throw();
-    void CopyFrom(const Set2& src, AllocatorInvader& a) throw();
-    Set2& operator = (Set2& other)                      throw();
+    Set()                                               throw();
+    void CopyFrom(const Set& src, AllocatorInvader& a)  throw();
+    Set& operator = (Set& other)                        throw();
     
     void Insert(VALUE val, AllocatorInvader& a)         throw();
-    void Merge(Set2& other, AllocatorInvader& a)        throw();
+    void Merge(Set& other, AllocatorInvader& a)         throw();
 
     VALUE Count()                                 const throw();
     bool  IsExist(VALUE val)                      const throw();

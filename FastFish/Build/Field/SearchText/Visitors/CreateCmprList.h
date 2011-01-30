@@ -19,7 +19,7 @@ class CreateCmprList
     static const size_t  MinItemsInBlock = BlockSize/5;
     
 public:
-    typedef Set2<docid_t, MaxDocumentId> SetType;//@@@
+    typedef Set<docid_t, MaxDocumentId> SetType;
 
     CreateCmprList(const SetType& st, const DOCUMENTS* pDocs) throw();
     

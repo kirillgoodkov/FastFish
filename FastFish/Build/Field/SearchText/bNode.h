@@ -16,7 +16,7 @@ class Node
     Node(const Node&);
     Node& operator = (const Node&);    
 public:
-    typedef Set2<docid_t, MaxDocumentId>      SetType;//@@@
+    typedef Set<docid_t, MaxDocumentId>      SetType;
     typedef CharMapSmall<Node, bCTRL, bSENS> MapType;
 
     struct ContextAW

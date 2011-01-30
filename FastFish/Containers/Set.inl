@@ -4,7 +4,7 @@
 namespace FastFish{
 
 template<typename VALUE, size_t nMAXVAL>
-typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::AppendLeaf(uns1_t*& pDst, uns1_t* pSrc, AllocatorInvader& a) throw()
+typename Set<VALUE, nMAXVAL>::Leaf* Set<VALUE, nMAXVAL>::AppendLeaf(uns1_t*& pDst, uns1_t* pSrc, AllocatorInvader& a) throw()
 {
     ffAssume(pSrc);
     Leaf* pLeaf  = NewPOD<Leaf>(a);
@@ -14,7 +14,7 @@ typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::AppendLeaf(uns1_t*& p
 }
 
 template<typename VALUE, size_t nMAXVAL>
-typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a) throw()
+typename Set<VALUE, nMAXVAL>::Leaf* Set<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a) throw()
 {
     ffAssume(pLeaf);
     ffAssume(pLeaf->arrData <= pDst && pDst <= pLeaf->arrData + ffCountOf(pLeaf->arrData));
@@ -30,21 +30,21 @@ typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& 
 //----------------------------------------------------------------------------
 
 template<typename VALUE, size_t nMAXVAL>
-bool Set2<VALUE, nMAXVAL>::IsExist(VALUE val) const throw()
+bool Set<VALUE, nMAXVAL>::IsExist(VALUE val) const throw()
 {
     ffAssert(!IsTree());    
     return val == m_lst.valLast;
 }
 
 template<typename VALUE, size_t nMAXVAL>
-bool Set2<VALUE, nMAXVAL>::HasOneItem() const throw()
+bool Set<VALUE, nMAXVAL>::HasOneItem() const throw()
 {
     ffAssert(!IsTree());    
     return ValueNop != *ValsLast() && ValueNop == *(ValsLast() - 1);
 }                       
 
 template<typename VALUE, size_t nMAXVAL>
-VALUE Set2<VALUE, nMAXVAL>::Count() const throw()
+VALUE Set<VALUE, nMAXVAL>::Count() const throw()
 {
     if (IsInplace())
     {
@@ -62,7 +62,7 @@ VALUE Set2<VALUE, nMAXVAL>::Count() const throw()
 //----------------------------------------------------------------------------
 
 template<typename VALUE, size_t nMAXVAL>
-Set2<VALUE, nMAXVAL>::Set2() throw()
+Set<VALUE, nMAXVAL>::Set() throw()
 {
     Clear();
     ffAssumeStatic(sizeof(*this) == sizeof(List));
@@ -74,7 +74,7 @@ Set2<VALUE, nMAXVAL>::Set2() throw()
 }
 
 template<typename VALUE, size_t nMAXVAL>
-void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a) throw()
+void Set<VALUE, nMAXVAL>::CopyFrom(const Set& src, AllocatorInvader& a) throw()
 {
     ffAssert(IsEmpty());
     if (src.IsInplace())
@@ -115,7 +115,7 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a) throw(
 }
 
 template<typename VALUE, size_t nMAXVAL>
-Set2<VALUE, nMAXVAL>& Set2<VALUE, nMAXVAL>::operator = (Set2& other) throw()
+Set<VALUE, nMAXVAL>& Set<VALUE, nMAXVAL>::operator = (Set& other) throw()
 {
     ffAssert(IsEmpty());
     ffAssert(other.Check());
@@ -125,7 +125,7 @@ Set2<VALUE, nMAXVAL>& Set2<VALUE, nMAXVAL>::operator = (Set2& other) throw()
 }
 
 template<typename VALUE, size_t nMAXVAL> ffForceInline
-void Set2<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
+void Set<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
 {
     ffAssert(!IsTree());
     ffAssert(!IsExist(val));
@@ -171,7 +171,7 @@ void Set2<VALUE, nMAXVAL>::Insert(VALUE val, AllocatorInvader& a) throw()
 
 template<typename VALUE, size_t nMAXVAL>
 template<typename PROC>
-void Set2<VALUE, nMAXVAL>::EnumChain(PROC& proc, VALUE valPrev, const uns1_t* pRead) ffThrowAll
+void Set<VALUE, nMAXVAL>::EnumChain(PROC& proc, VALUE valPrev, const uns1_t* pRead) ffThrowAll
 {
     proc(valPrev);    
     do
@@ -189,7 +189,7 @@ void Set2<VALUE, nMAXVAL>::EnumChain(PROC& proc, VALUE valPrev, const uns1_t* pR
 
 template<typename VALUE, size_t nMAXVAL>
 template<typename PROC>
-void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
+void Set<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
 {
     if (IsInplace())
     {
@@ -223,7 +223,7 @@ void Set2<VALUE, nMAXVAL>::Enum(PROC& proc) const ffThrowAll
 }
 
 template<typename VALUE, size_t nMAXVAL> ffForceInline
-void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
+void Set<VALUE, nMAXVAL>::Merge(Set& other, AllocatorInvader& a) throw()
 {
     //      (this)      (other)
     //0     inplace     inplace     ->  inplace                 ? sum <= inplace
@@ -362,7 +362,7 @@ struct Counter
 };
 
 template<typename VALUE, size_t nMAXVAL>
-bool Set2<VALUE, nMAXVAL>::Check() const throw()
+bool Set<VALUE, nMAXVAL>::Check() const throw()
 {
     Counter<VALUE, nMAXVAL> cnt = {0};
     Enum(cnt);
