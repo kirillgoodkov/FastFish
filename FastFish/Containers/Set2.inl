@@ -17,7 +17,7 @@ template<typename VALUE, size_t nMAXVAL>
 typename Set2<VALUE, nMAXVAL>::Leaf* Set2<VALUE, nMAXVAL>::Insert2Leaf(uns1_t*& pDst, Leaf* pLeaf, VALUE val, AllocatorInvader& a) throw()
 {
     ffAssume(pLeaf);
-    ffAssume(pLeaf->arrData <= pDst && pDst <= pLeaf->arrData + InplaceVals);
+    ffAssume(pLeaf->arrData <= pDst && pDst <= pLeaf->arrData + ffCountOf(pLeaf->arrData));
     if (size_t(pDst - pLeaf->arrData) < VbeSizeOf(val))
     {
         ffClFlush(pLeaf);
@@ -111,12 +111,13 @@ void Set2<VALUE, nMAXVAL>::CopyFrom(const Set2& src, AllocatorInvader& a) throw(
         }        
     }
     
-    ffAssert(Check() && src.Check());
+    ffAssert(Check());
 }
 
 template<typename VALUE, size_t nMAXVAL>
 Set2<VALUE, nMAXVAL>& Set2<VALUE, nMAXVAL>::operator = (Set2& other) throw()
 {
+    ffAssert(IsEmpty());
     ffAssert(other.Check());
     m_raw = other.m_raw;
     ffDebugOnly(other.Clear());
@@ -232,9 +233,19 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
     //3     tree        inplace     ->  tree(same chain)                                        
     //4     tree        list        ->  tree(new chain)
 
-    ffAssert(Check() && other.Check());   
     ffAssert(!other.IsTree());
-    ffAssert(!(IsEmpty() || other.IsEmpty()));
+    if (IsEmpty())
+    {
+        m_raw = other.m_raw;
+        return;
+    }
+    
+    if (other.IsEmpty())
+    {
+        return;
+    }        
+
+    ffAssert(Check() && other.Check());   
 
     VALUE nCountOther = other.Count();
 
@@ -292,7 +303,7 @@ void Set2<VALUE, nMAXVAL>::Merge(Set2& other, AllocatorInvader& a) throw()
             pNode->pPrev        = 0;
             pNode->arrChains[0] = m_lst.pWrite;
             m_tree.pWrite       = pNode->arrChains;
-            m_tree.valLastF     = m_lst.valLast | ValueFlag;        
+            m_tree.valLastF    |= ValueFlag;        
         }
     }
     
