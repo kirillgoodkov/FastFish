@@ -120,7 +120,7 @@ Set2<VALUE, nMAXVAL>& Set2<VALUE, nMAXVAL>::operator = (Set2& other) throw()
     ffAssert(IsEmpty());
     ffAssert(other.Check());
     m_raw = other.m_raw;
-    ffDebugOnly(other.Clear());
+    other.Clear();
     return *this;
 }
 
