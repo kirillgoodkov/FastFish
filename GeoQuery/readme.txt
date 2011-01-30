@@ -1,0 +1,1 @@
+GeoQuery - application for search in index, builded by GeoImport

@@ -264,7 +264,8 @@ The version number looks like major.minor.revision.
 		old index file and/or significant changes in the API, i.e., to build 
 		with a new version, the calling code may require changes. 
 
-Version of this document - 0.0.0 
+Version of this document - 0.0.1 
 
 Version History:
 	0.0.0 - initial release
+	0.0.1 - significantly (about 2.5 times) reduced RAM usage during index build 

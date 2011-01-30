@@ -63,5 +63,13 @@ Limitations:
 	* 65 536 - length of the word in the texts for the search fields 
 	Length of the text in any search field of a document is not restricted. 
 
+Folders:
+    FastFish - library itself    
+    Geo* - example applications for indexing and searching data from 
+        www.geonames.org (geographical database covers all countries and contains 
+        over eight million placenames)        
+    Wiki* - example applications for indexing and searching on Wikipedia dumps. 
+    
 Version History:
 	0.0.0 - initial release
+	0.0.1 - significantly (about 2.5 times) reduced RAM usage during index build 
