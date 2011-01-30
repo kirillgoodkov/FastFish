@@ -766,14 +766,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Containers\Set.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Containers\Set.inl"
-				>
-			</File>
-			<File
 				RelativePath=".\Containers\Set2.h"
 				>
 			</File>
