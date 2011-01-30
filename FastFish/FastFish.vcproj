@@ -766,11 +766,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Containers\Set2.h"
+				RelativePath=".\Containers\Set.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Containers\Set2.inl"
+				RelativePath=".\Containers\Set.inl"
 				>
 			</File>
 			<File
